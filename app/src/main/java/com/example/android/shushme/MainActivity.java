@@ -16,12 +16,30 @@ package com.example.android.shushme;
 * limitations under the License.
 */
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.View;
+import android.widget.CheckBox;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Places;
+
+public class MainActivity
+        extends
+            AppCompatActivity
+        implements
+            GoogleApiClient.ConnectionCallbacks,
+            GoogleApiClient.OnConnectionFailedListener {
 
     // Constants
     public static final String TAG = MainActivity.class.getSimpleName();
@@ -41,17 +59,93 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Set up the recycler view
-        mRecyclerView = (RecyclerView) findViewById(R.id.places_list_recycler_view);
+        mRecyclerView = findViewById(R.id.places_list_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mAdapter = new PlaceListAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
 
         // TODO (4) Create a GoogleApiClient with the LocationServices API and GEO_DATA_API
+        /*
+        First 2 methods, addConnectionCallbacks and addOnConnectionFailedListener, are setting
+        the callbacks that will notify when a connection is successful, since we will be creating
+        this client in MainActivity, we will set the callbacks to this. addApi is then called to
+        add the API libraries we are planning to use, as we mentioned earlier we will be using
+        the location services api and the places api. enableAutoManage means that the client will
+        connect/disconnect on its own, otherwise you will have to call connect and disconnect
+        explicitly. And then finally build creates the actual client object.
+         */
+        GoogleApiClient client = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .enableAutoManage(this, this)
+                .build();
     }
 
     // TODO (5) Override onConnected, onConnectionSuspended and onConnectionFailed for GoogleApiClient
-    // TODO (7) Override onResume and inside it initialize the location permissions checkbox
+
+    /*
+    Once the client automatically connects to Google Play Services, onConnected
+    method will fire, that is if the connections was successful.
+     */
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(TAG, "onConnected() called with: bundle = [" + bundle + "]");
+    }
+
+    /* If for any reason it wasn’t, onConnectionFailed will fire instead. */
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d(TAG, "onConnectionSuspended() called with: i = [" + i + "]");
+    }
+
+    /*
+    onConnectionSuspended as the name suggests fires when the client’s AutoManager
+    decided to suspend the connection.
+     */
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(TAG, "onConnectionFailed() called with: connectionResult = [" + connectionResult + "]");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // TODO (7) Override onResume and inside it initialize the location permissions checkbox
+
+        // Initialize location permissions checkbox
+        CheckBox locationPermissions = findViewById(R.id.location_permission_checkbox);
+        if (ActivityCompat.checkSelfPermission(MainActivity.this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            locationPermissions.setChecked(false);
+        } else {
+            locationPermissions.setChecked(true);
+            locationPermissions.setEnabled(false);
+        }
+    }
+
     // TODO (8) Implement onLocationPermissionClicked to handle the CheckBox click event
+    public void onLocationPermissionClicked(View view) {
+        ActivityCompat.requestPermissions(MainActivity.this,
+                new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                111);
+    }
+
     // TODO (9) Implement the Add Place Button click event to show  a toast message with the permission status
+    /***
+     * Button Click event handler to handle clicking the "Add new location" Button
+     *
+     * @param view
+     */
+    public void onAddPlaceButtonClicked(View view) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, getString(R.string.need_location_permission_message), Toast.LENGTH_LONG).show();
+            return;
+        }
+        Toast.makeText(this, getString(R.string.location_permissions_granted_message), Toast.LENGTH_LONG).show();
+    }
 
 }
