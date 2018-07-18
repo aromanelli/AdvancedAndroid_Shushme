@@ -11,7 +11,22 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        // https://medium.com/code-better/hiding-api-keys-from-your-android-repository-b23f5598b906
+        // https://stackoverflow.com/a/34021467/435519 (option #2)
+        //    https://stackoverflow.com/questions/33134031/is-there-a-safe-way-to-manage-api-keys
+        // https://richardroseblog.wordpress.com/2016/05/29/hiding-secret-api-keys-from-git/
+        debug {
+            // For Java ...
+            buildConfigField 'String', "ApiKey_GoogleAndroidGeo", ApiKey_Debug_GoogleAndroidGeo
+            // For non-Java (layouts, resources, etc.) ...
+            resValue 'string', "api_key_google_android_geo", ApiKey_Debug_GoogleAndroidGeo
+        }
         release {
+            // For Java ...
+            buildConfigField 'String', "ApiKey_GoogleAndroidGeo", ApiKey_Release_GoogleAndroidGeo
+            // For non-Java (layouts, resources, etc.) ...
+            resValue 'string', "api_key_google_android_geo", ApiKey_Release_GoogleAndroidGeo
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
