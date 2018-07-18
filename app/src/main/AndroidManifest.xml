@@ -9,9 +9,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!-- Google Places API for Android: "com.google.android.geo.API_KEY" -->
+        <!-- See modules build.gradle for links to how to import key value from outside. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="insert-your-api-key-here" />
+            android:value="@string/api_key_google_android_geo" />
 
         <activity android:name="com.example.android.shushme.MainActivity">
             <intent-filter>
